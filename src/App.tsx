@@ -1,21 +1,12 @@
 import React from 'react';
+import { MessageFormContainer } from 'modules/message/containers/MessageForm';
+import { MessagePaneContainer } from 'modules/message/containers/MessagePane';
 
 const App: React.FC = () => {
   return (
-    <div className="App">
-      <header className="App-header">
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <MessagePaneContainer />
+      <MessageFormContainer />
     </div>
   );
 }
