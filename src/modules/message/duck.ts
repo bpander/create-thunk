@@ -4,29 +4,41 @@ import { ThunkAction } from 'redux-thunk';
 import { createReducer } from 'lib/createReducer';
 import { Message } from './types';
 import { MessageService } from './MessageService';
+import { createThunk, ThunkStatus, initialThunkStatus } from 'lib/createThunk';
 
-interface MessageState {
+interface RootState { message: MessageState }
+type MessageThunk<R> = ThunkAction<R, RootState, {}, Action>
+const getSlice = (state: RootState): MessageState => state.message;
+
+export interface MessageState {
   messages: Message[];
+  loadAllStatus: ThunkStatus;
+  sendStatuses: ThunkStatus[];
 }
-
-interface State {
-  message: MessageState;
-}
-
-type MessageThunk<R> = ThunkAction<R, State, {}, Action>
-
-const getSlice = (state: State): MessageState => state.message;
 
 const initialState: MessageState = {
   messages: [],
+  loadAllStatus: initialThunkStatus,
+  sendStatuses: [],
 };
 
 const { reducer, update } = createReducer('message/UPDATE', initialState);
 export const messageReducer = reducer;
 
-export const sendMessage = (text: string): MessageThunk<Promise<void>> => {
+const appendMessage = (message: Message): MessageThunk<Promise<void>> => {
   return async (dispatch, getState) => {
-    const message = await MessageService.send(text);
     dispatch(update({ messages: [ ...getSlice(getState()).messages, message ]}));
   };
 };
+
+export const loadAll = createThunk(
+  MessageService.loadAll,
+  messages => update({ messages }),
+  loadAllStatus => update({ loadAllStatus }),
+);
+
+export const sendMessage = createThunk(
+  MessageService.send,
+  message => appendMessage(message),
+  
+);
