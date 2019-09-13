@@ -24,5 +24,7 @@ export const configureActionsWith = <S>(initialState: S, prefix = '') => {
         return state;
     };
 
-    return { configureAction, reducer };
+    const update = configureAction<Partial<S>>('UPDATE', updates => s => ({ ...s, ...updates }));
+
+    return { configureAction, reducer, update };
 };

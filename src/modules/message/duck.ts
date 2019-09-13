@@ -18,12 +18,8 @@ export const initialState: MessageState = {
     sendStatuses: {},
 };
 
-const { configureAction, reducer } = configureActionsWith(initialState, 'MESSAGE');
+const { configureAction, reducer, update } = configureActionsWith(initialState, 'MESSAGE');
 export const messageReducer = enableBatching(reducer);
-
-const update = configureAction<Partial<MessageState>>(
-    'UPDATE', updates => state => ({ ...state, ...updates }),
-);
 
 const appendMessage = configureAction<Message>(
     'APPEND_MESSAGE',
