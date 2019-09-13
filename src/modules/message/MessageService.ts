@@ -3,17 +3,23 @@ import { mockMessages } from './__mocks__/message';
 
 const uniqueId = () => String(Math.random()).split('.').pop()!;
 
-const LATENCY = 500;
-
 export class MessageService {
 
     static async loadAll(recipientId: string): Promise<Message[]> {
-        await new Promise(resolve => setTimeout(resolve, LATENCY));
+        const { debug } = (window as any).store.getState();
+        await new Promise(resolve => setTimeout(resolve, debug.latency));
+        if (debug.shouldRequestsFail) {
+            throw new Error('Simulated failure');
+        }
         return mockMessages;
     }
 
     static async send(text: string): Promise<Message> {
-        await new Promise(resolve => setTimeout(resolve, LATENCY));
+        const { debug } = (window as any).store.getState();
+        await new Promise(resolve => setTimeout(resolve, debug.latency));
+        if (debug.shouldRequestsFail) {
+            throw new Error('Simulated failure');
+        }
         const message: Message = {
             id: uniqueId(),
             text,

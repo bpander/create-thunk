@@ -1,4 +1,6 @@
 import React from 'react';
+
+import { DebugMenuContainer } from 'modules/debug/containers/DebugMenuContainer';
 import { MessageFormContainer } from 'modules/message/containers/MessageForm';
 import { MessagePaneContainer } from 'modules/message/containers/MessagePane';
 
@@ -18,6 +20,9 @@ const App: React.FC = () => {
                 <div style={{ padding: 20 }}>
                     <MessageFormContainer />
                 </div>
+            </div>
+            <div style={{ position: 'fixed', top: 0, right: 20 }}>
+                <DebugMenuContainer />
             </div>
         </div>
     );
