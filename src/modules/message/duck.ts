@@ -4,17 +4,18 @@ import { configureActionsWith } from 'lib/configuredActions';
 import { Message } from './types';
 import { MessageService } from './MessageService';
 import { createThunk, ThunkStatus, initialThunkStatus } from 'lib/createThunk';
+import { omit } from 'lib/objects';
 
 export interface MessageState {
     messages: Message[];
     loadAllStatus: ThunkStatus;
-    sendStatuses: ThunkStatus[];
+    sendStatuses: Record<string, ThunkStatus>;
 }
 
 export const initialState: MessageState = {
     messages: [],
     loadAllStatus: initialThunkStatus,
-    sendStatuses: [],
+    sendStatuses: {},
 };
 
 const { configureAction, reducer } = configureActionsWith(initialState, 'MESSAGE');
@@ -38,4 +39,14 @@ export const loadAll = createThunk(
 export const sendMessage = createThunk(
     MessageService.send,
     message => appendMessage(message),
+    configureAction<ThunkStatus>(
+        'SEND_STATUS_CHANGE',
+        sendStatus => state => {
+            const { sendStatuses } = state;
+            if (!sendStatus.error && !sendStatus.loading) {
+                return { ...state, sendStatuses: omit(sendStatuses, sendStatus.id) };
+            }
+            return { ...state, sendStatuses: { ...sendStatuses, [sendStatus.id]: sendStatus } };
+        },
+    ),
 );
