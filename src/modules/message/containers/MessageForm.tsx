@@ -6,28 +6,28 @@ import { sendMessage } from 'modules/message/duck';
 import { RootDispatch } from 'root';
 
 interface MessageFormProps {
-  sendMessage: (text: string) => void;
+    sendMessage: (text: string) => void;
 }
 
 export const MessageForm: React.FC<MessageFormProps> = props => {
-  const [ message, setMessage ] = useState('');
+    const [ message, setMessage ] = useState('');
 
-  const onSubmit: React.FormEventHandler = e => {
-    e.preventDefault();
-    props.sendMessage(message);
-    setMessage('');
-  };
+    const onSubmit: React.FormEventHandler = e => {
+        e.preventDefault();
+        props.sendMessage(message);
+        setMessage('');
+    };
 
-  return (
-    <form onSubmit={onSubmit}>
-      <input value={message} onChange={e => setMessage(e.currentTarget.value)} />
-      <button>Submit</button>
-    </form>
-  );
+    return (
+        <form onSubmit={onSubmit}>
+            <input value={message} onChange={e => setMessage(e.currentTarget.value)} />
+            <button>Submit</button>
+        </form>
+    );
 };
 
 const mapDispatchToProps = (dispatch: RootDispatch) => bindActionCreators({
-  sendMessage,
+    sendMessage,
 }, dispatch);
 
 export const MessageFormContainer = connect(null, mapDispatchToProps)(MessageForm);
