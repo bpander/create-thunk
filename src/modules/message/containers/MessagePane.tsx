@@ -19,11 +19,21 @@ export const MessagePane: React.FC<MessagePaneProps> = props => {
   }
 
   return (
-    <ul>
-      {props.message.messages.map(message => (
-        <li key={message.id}>{message.text}</li>
-      ))}
-    </ul>
+    <React.Fragment>
+      <ul>
+        {props.message.messages.map(message => (
+          <li key={message.id}>{message.text}</li>
+        ))}
+      </ul>
+      <ul>
+        {Object.keys(props.message.sendStatuses).map(key => {
+          const request = props.message.sendStatuses[key];
+          return (
+            <li key={request.id} style={{ opacity: 0.5 }}>{request.args[0]}</li>
+          );
+        })}
+      </ul>
+    </React.Fragment>
   );
 };
 
