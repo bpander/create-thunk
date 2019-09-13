@@ -9,7 +9,7 @@ import { omit } from 'lib/objects';
 export interface MessageState {
     messages: Message[];
     loadAllStatus: ThunkStatus;
-    sendStatuses: Record<string, ThunkStatus>;
+    sendStatuses: Record<string, ThunkStatus<Parameters<typeof MessageService.send>>>;
 }
 
 export const initialState: MessageState = {
@@ -35,7 +35,7 @@ export const loadAll = createThunk(
 export const sendMessage = createThunk(
     MessageService.send,
     message => appendMessage(message),
-    configureAction<ThunkStatus>(
+    configureAction(
         'SEND_STATUS_CHANGE',
         sendStatus => state => {
             const { sendStatuses } = state;
