@@ -12,16 +12,28 @@ interface MessageFormProps {
 export const MessageForm: React.FC<MessageFormProps> = props => {
     const [ message, setMessage ] = useState('');
 
-    const onSubmit: React.FormEventHandler = e => {
+    const onSubmit: React.FormEventHandler<HTMLFormElement> = e => {
         e.preventDefault();
+        if (!e.currentTarget.checkValidity()) {
+            return;
+        }
         props.sendMessage(message);
         setMessage('');
     };
 
     return (
-        <form onSubmit={onSubmit}>
-            <input value={message} onChange={e => setMessage(e.currentTarget.value)} />
-            <button>Submit</button>
+        <form noValidate onSubmit={onSubmit} style={{ display: 'flex', width: '100%' }}>
+            <div style={{ flexGrow: 1 }}>
+                <input
+                    value={message}
+                    onChange={e => setMessage(e.currentTarget.value)}
+                    required
+                    className="input"
+                />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', paddingLeft: 10 }}>
+                <button className="btn">Send</button>
+            </div>
         </form>
     );
 };
