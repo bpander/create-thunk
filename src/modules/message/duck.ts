@@ -1,44 +1,41 @@
-import { Action } from 'redux';
-import { ThunkAction } from 'redux-thunk';
+import { enableBatching } from 'redux-batched-actions';
 
-import { createReducer } from 'lib/createReducer';
+import { configureActionsWith } from 'lib/configuredActions';
 import { Message } from './types';
 import { MessageService } from './MessageService';
 import { createThunk, ThunkStatus, initialThunkStatus } from 'lib/createThunk';
 
-interface RootState { message: MessageState }
-type MessageThunk<R> = ThunkAction<R, RootState, {}, Action>
-const getSlice = (state: RootState): MessageState => state.message;
-
 export interface MessageState {
-  messages: Message[];
-  loadAllStatus: ThunkStatus;
-  sendStatuses: ThunkStatus[];
+    messages: Message[];
+    loadAllStatus: ThunkStatus;
+    sendStatuses: ThunkStatus[];
 }
 
-const initialState: MessageState = {
-  messages: [],
-  loadAllStatus: initialThunkStatus,
-  sendStatuses: [],
+export const initialState: MessageState = {
+    messages: [],
+    loadAllStatus: initialThunkStatus,
+    sendStatuses: [],
 };
 
-const { reducer, update } = createReducer('message/UPDATE', initialState);
-export const messageReducer = reducer;
+const { configureAction, reducer } = configureActionsWith(initialState, 'MESSAGE');
+export const messageReducer = enableBatching(reducer);
 
-const appendMessage = (message: Message): MessageThunk<Promise<void>> => {
-  return async (dispatch, getState) => {
-    dispatch(update({ messages: [ ...getSlice(getState()).messages, message ]}));
-  };
-};
+const update = configureAction<Partial<MessageState>>(
+    'UPDATE', updates => state => ({ ...state, ...updates }),
+);
+
+const appendMessage = configureAction<Message>(
+    'APPEND_MESSAGE',
+    message => state => ({ ...state, messages: [ ...state.messages, message ] }),
+);
 
 export const loadAll = createThunk(
-  MessageService.loadAll,
-  messages => update({ messages }),
-  loadAllStatus => update({ loadAllStatus }),
+    MessageService.loadAll,
+    messages => update({ messages }),
+    loadAllStatus => update({ loadAllStatus }),
 );
 
 export const sendMessage = createThunk(
-  MessageService.send,
-  message => appendMessage(message),
-  
+    MessageService.send,
+    message => appendMessage(message),
 );

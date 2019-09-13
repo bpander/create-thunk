@@ -1,9 +1,8 @@
-import { Action } from 'redux';
-import { ThunkAction, ThunkDispatch } from 'redux-thunk';
+import { Action, Dispatch } from 'redux';
+import { batchActions } from 'redux-batched-actions';
 
 type AnyFunction = (...args: any[]) => Promise<any>;
 export type ResolveType<TPromise> = TPromise extends Promise<infer T> ? T : never;
-
 
 export interface ThunkStatus {
   loading: boolean;
@@ -19,26 +18,29 @@ export const initialThunkStatus: ThunkStatus = {
   args: [],
 };
 
-type ThunkOrAction = ThunkAction<any, any, any, Action> | Action;
-
-const noopThunk = () => () => {};
-
 export const createThunk = <F extends AnyFunction, S, E>(
   asyncFn: F,
-  successAction: (result: ResolveType<ReturnType<F>>) => ThunkOrAction,
-  statusAction: (status: ThunkStatus) => ThunkOrAction = noopThunk,
+  successAction: (result: ResolveType<ReturnType<F>>) => Action,
+  statusAction?: (status: ThunkStatus) => Action,
 ) => {
-  return (...args: Parameters<F>) => async (dispatch: ThunkDispatch<S, E, any>) => {
-    dispatch(statusAction({ ...initialThunkStatus, args, loading: true }));
+  return (...args: Parameters<F>) => async (dispatch: Dispatch) => {
+    if (statusAction) {
+      dispatch(statusAction({ ...initialThunkStatus, args, loading: true }));
+    }
     try {
       const result = await asyncFn(...args);
       const successStatus: ThunkStatus = { args, loading: false, error: null, lastUpdate: Date.now() };
-      dispatch(successAction(result));
-      dispatch(statusAction(successStatus));
+      if (statusAction) {
+        dispatch(batchActions([ successAction(result), statusAction(successStatus) ]));
+      } else {
+        dispatch(successAction(result));
+      }
       return successStatus;
     } catch (error) {
       const errorStatus: ThunkStatus = { ...initialThunkStatus, args, error };
-      dispatch(statusAction(errorStatus));
+      if (statusAction) {
+        dispatch(statusAction(errorStatus));
+      }
       return errorStatus;
     }
   };
