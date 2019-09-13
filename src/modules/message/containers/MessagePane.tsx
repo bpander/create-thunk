@@ -29,7 +29,15 @@ export const MessagePane: React.FC<MessagePaneProps> = props => {
                 {Object.keys(props.message.sendStatuses).map(key => {
                     const request = props.message.sendStatuses[key];
                     return (
-                        <li key={request.id} style={{ opacity: 0.5 }}>{request.args[0]}</li>
+                        <li key={request.id} style={{ opacity: (request.loading) ? 0.5 : 1 }}>
+                            {request.args[0]}
+                            {(request.error) && (
+                                <div>
+                                    <span style={{ color: 'red' }}>Couldn't send</span>
+                                    <button type="button" className="btn">Retry?</button>
+                                </div>
+                            )}
+                        </li>
                     );
                 })}
             </ul>
