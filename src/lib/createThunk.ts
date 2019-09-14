@@ -5,21 +5,13 @@ type AnyFunction = (...args: any[]) => Promise<any>;
 export type ResolveType<TPromise> = TPromise extends Promise<infer T> ? T : never;
 
 export interface ThunkStatus<TArgs = any[]> {
-    id: string;
     loading: boolean;
     error: Error | null;
     lastUpdate: number;
     args: TArgs;
 }
 
-let counter = 0;
-const uniqueId = () => {
-    counter++;
-    return String(counter);
-};
-
 export const initialThunkStatus: ThunkStatus = {
-    id: '',
     loading: false,
     error: null,
     lastUpdate: 0,
@@ -32,9 +24,7 @@ export const createThunk = <F extends AnyFunction>(
     statusAction?: (status: ThunkStatus<Parameters<F>>) => Action,
 ) => {
     return (...args: Parameters<F>) => async (dispatch: Dispatch) => {
-        let status: ThunkStatus<Parameters<F>> = {
-            ...initialThunkStatus, args, loading: true, id: uniqueId(),
-        };
+        let status: ThunkStatus<Parameters<F>> = { ...initialThunkStatus, args, loading: true };
         if (statusAction) {
             dispatch(statusAction(status));
         }

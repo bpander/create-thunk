@@ -9,7 +9,7 @@ import { omit } from 'lib/objects';
 export interface MessageState {
     messages: Message[];
     loadAllStatus: ThunkStatus;
-    sendStatuses: Record<string, ThunkStatus<Parameters<typeof MessageService.send>>>;
+    sendStatuses: Record<string, ThunkStatus<[SendRequest]>>;
 }
 
 export const initialState: MessageState = {
@@ -32,17 +32,28 @@ export const loadAll = createThunk(
     loadAllStatus => update({ loadAllStatus }),
 );
 
+export interface SendRequest {
+    tempId: string;
+    text: string;
+}
+
 export const sendMessage = createThunk(
-    MessageService.send,
+    (sendRequest: SendRequest) => MessageService.send(sendRequest.text),
     message => appendMessage(message),
     configureAction(
         'SEND_STATUS_CHANGE',
         sendStatus => state => {
             const { sendStatuses } = state;
+            const [ sendRequest ] = sendStatus.args;
             if (!sendStatus.error && !sendStatus.loading) {
-                return { ...state, sendStatuses: omit(sendStatuses, sendStatus.id) };
+                return { ...state, sendStatuses: omit(sendStatuses, sendRequest.tempId) };
             }
-            return { ...state, sendStatuses: { ...sendStatuses, [sendStatus.id]: sendStatus } };
+            return { ...state, sendStatuses: { ...sendStatuses, [sendRequest.tempId]: sendStatus } };
         },
     ),
+);
+
+export const cancelMessage = configureAction<string>(
+    'CANCEL_SEND_REQUEST',
+    tempId => state => ({ ...state, sendStatuses: omit(state.sendStatuses, tempId) }),
 );

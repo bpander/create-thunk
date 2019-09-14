@@ -1,7 +1,6 @@
 import { Message } from './types';
 import { mockMessages } from './__mocks__/message';
-
-const uniqueId = () => String(Math.random()).split('.').pop()!;
+import { uniqueId } from 'lib/uniqueId';
 
 export class MessageService {
 

@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
-import { sendMessage } from 'modules/message/duck';
+import { sendMessage, SendRequest } from 'modules/message/duck';
 import { RootDispatch } from 'root';
+import { uniqueId } from 'lib/uniqueId';
 
 interface MessageFormProps {
-    sendMessage: (text: string) => void;
+    sendMessage: (sendRequest: SendRequest) => void;
 }
 
 export const MessageForm: React.FC<MessageFormProps> = props => {
@@ -17,7 +18,7 @@ export const MessageForm: React.FC<MessageFormProps> = props => {
         if (!e.currentTarget.checkValidity()) {
             return;
         }
-        props.sendMessage(message);
+        props.sendMessage({ text: message, tempId: uniqueId() } );
         setMessage('');
     };
 
