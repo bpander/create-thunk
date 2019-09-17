@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import { connect } from 'react-redux';
 
-import { MessageState, SendRequest, sendMessage, cancelMessage } from 'modules/message/duck';
-import { RootState, RootDispatch } from 'root';
+import { MessageState, SendRequest, sendMessage, cancelMessage, initialState } from 'modules/message/duck';
+import { RootState, RootDispatch, wrap } from 'root';
 import { loadAll } from '../duck';
 import { bindActionCreators } from 'redux';
 
@@ -71,11 +71,11 @@ export const MessagePane: React.FC<MessagePaneProps> = props => {
 };
 
 const mapStateToProps = (state: RootState) => ({
-    message: state.message,
+    message: state.recipient['lkj'] || initialState,
 });
 
 const mapDispatchToProps = (dispatch: RootDispatch) => bindActionCreators({
-    loadAll,
+    loadAll: (recipientId: string) => wrap('lkj', loadAll(recipientId)),
     sendMessage,
     cancelMessage,
 }, dispatch);
