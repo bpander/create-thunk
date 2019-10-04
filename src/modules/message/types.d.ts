@@ -3,4 +3,5 @@ export interface Message {
     text: string;
     sent: string;
     sender: string;
+    recipientId: string;
 }

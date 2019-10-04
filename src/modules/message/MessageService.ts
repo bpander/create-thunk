@@ -13,7 +13,7 @@ export class MessageService {
         return mockMessages;
     }
 
-    static async send(text: string): Promise<Message> {
+    static async send(recipientId: string, text: string): Promise<Message> {
         const { debug } = (window as any).store.getState();
         await new Promise(resolve => setTimeout(resolve, debug.latency));
         if (debug.shouldRequestsFail) {
@@ -24,6 +24,7 @@ export class MessageService {
             text,
             sent: new Date().toISOString(),
             sender: 'you',
+            recipientId,
         };
         return message;
     }

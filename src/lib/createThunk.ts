@@ -20,27 +20,27 @@ export const initialThunkStatus: ThunkStatus = {
 
 export const createThunk = <F extends AnyFunction>(
     asyncFn: F,
-    successAction: (result: ResolveType<ReturnType<F>>) => Action,
-    statusAction?: (status: ThunkStatus<Parameters<F>>) => Action,
+    successAction: (result: ResolveType<ReturnType<F>>, args: Parameters<F>) => Action,
+    statusAction?: (status: ThunkStatus<Parameters<F>>, args: Parameters<F>) => Action,
 ) => {
     return (...args: Parameters<F>) => async (dispatch: Dispatch) => {
         let status: ThunkStatus<Parameters<F>> = { ...initialThunkStatus, args, loading: true };
         if (statusAction) {
-            dispatch(statusAction(status));
+            dispatch(statusAction(status, args));
         }
         try {
             const result = await asyncFn(...args);
             status = { ...status, loading: false, lastUpdate: Date.now() };
             if (statusAction) {
-                dispatch(batchActions([ successAction(result), statusAction(status) ]));
+                dispatch(batchActions([ successAction(result, args), statusAction(status, args) ]));
             } else {
-                dispatch(successAction(result));
+                dispatch(successAction(result, args));
             }
             return status;
         } catch (error) {
             status = { ...status, loading: false, error };
             if (statusAction) {
-                dispatch(statusAction(status));
+                dispatch(statusAction(status, args));
             }
             return status;
         }

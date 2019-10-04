@@ -1,21 +1,22 @@
 import React, { useEffect } from 'react';
 import { connect } from 'react-redux';
 
-import { MessageState, SendRequest, sendMessage, cancelMessage, initialState } from 'modules/message/duck';
-import { RootState, RootDispatch, wrap } from 'root';
+import { MessageState, SendRequest, sendMessage, cancelMessage, initialMessageState } from 'modules/message/duck';
+import { RootState, RootDispatch } from 'root';
 import { loadAll } from '../duck';
 import { bindActionCreators } from 'redux';
+import { wrap } from 'lib/keyedSubStates';
 
 interface MessagePaneProps {
     message: MessageState;
     loadAll: (recipientId: string) => void;
     sendMessage: (sendRequest: SendRequest) => void;
-    cancelMessage: (tempId: string) => void;
+    cancelMessage: (recipientId: string, tempId: string) => void;
 }
 
 export const MessagePane: React.FC<MessagePaneProps> = props => {
     const { loadAll } = props;
-    useEffect(() => { loadAll(''); }, [ loadAll ]);
+    useEffect(() => { loadAll('lkj'); }, [ loadAll ]);
 
     if (props.message.loadAllStatus.loading) {
         return <span>loading...</span>;
@@ -26,7 +27,7 @@ export const MessagePane: React.FC<MessagePaneProps> = props => {
     };
 
     const onCancelClick = (sendRequest: SendRequest) => () => {
-        props.cancelMessage(sendRequest.tempId);
+        props.cancelMessage(sendRequest.recipientId, sendRequest.tempId);
     };
 
     return (
@@ -71,13 +72,13 @@ export const MessagePane: React.FC<MessagePaneProps> = props => {
 };
 
 const mapStateToProps = (state: RootState) => ({
-    message: state.recipient['lkj'] || initialState,
+    message: state.recipient['lkj'] || initialMessageState,
 });
 
 const mapDispatchToProps = (dispatch: RootDispatch) => bindActionCreators({
-    loadAll: (recipientId: string) => wrap('lkj', loadAll(recipientId)),
+    loadAll,
     sendMessage,
-    cancelMessage,
+    cancelMessage: (recipientId: string, tempId: string) => wrap(recipientId, cancelMessage(tempId)),
 }, dispatch);
 
 export const MessagePaneContainer = connect(mapStateToProps, mapDispatchToProps)(MessagePane);

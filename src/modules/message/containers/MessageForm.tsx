@@ -3,10 +3,11 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
 import { sendMessage, SendRequest } from 'modules/message/duck';
-import { RootDispatch } from 'root';
+import { RootDispatch, RootState } from 'root';
 import { uniqueId } from 'lib/uniqueId';
 
 interface MessageFormProps {
+    recipientId: string;
     sendMessage: (sendRequest: SendRequest) => void;
 }
 
@@ -18,7 +19,7 @@ export const MessageForm: React.FC<MessageFormProps> = props => {
         if (!e.currentTarget.checkValidity()) {
             return;
         }
-        props.sendMessage({ text: message, tempId: uniqueId() } );
+        props.sendMessage({ text: message, recipientId: props.recipientId, tempId: uniqueId() });
         setMessage('');
     };
 
@@ -39,8 +40,12 @@ export const MessageForm: React.FC<MessageFormProps> = props => {
     );
 };
 
+const mapStateToProps = (state: RootState) => ({
+    recipientId: 'lkj',
+});
+
 const mapDispatchToProps = (dispatch: RootDispatch) => bindActionCreators({
     sendMessage,
 }, dispatch);
 
-export const MessageFormContainer = connect(null, mapDispatchToProps)(MessageForm);
+export const MessageFormContainer = connect(mapStateToProps, mapDispatchToProps)(MessageForm);
