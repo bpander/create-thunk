@@ -1,5 +1,4 @@
 import { Action, Dispatch } from 'redux';
-import { batchActions } from 'redux-batched-actions';
 
 type AnyFunction = (...args: any[]) => Promise<any>;
 export type ResolveType<TPromise> = TPromise extends Promise<infer T> ? T : never;
@@ -20,27 +19,27 @@ export const initialThunkStatus: ThunkStatus = {
 
 export const createThunk = <F extends AnyFunction>(
     asyncFn: F,
-    successAction: (result: ResolveType<ReturnType<F>>, args: Parameters<F>) => Action,
-    statusAction?: (status: ThunkStatus<Parameters<F>>, args: Parameters<F>) => Action,
+    handleUpdate: (...args: Parameters<F>) => (status: ThunkStatus<Parameters<F>>, result?: ResolveType<ReturnType<F>>, error?: Error) => Action | undefined,
 ) => {
     return (...args: Parameters<F>) => async (dispatch: Dispatch) => {
         let status: ThunkStatus<Parameters<F>> = { ...initialThunkStatus, args, loading: true };
-        if (statusAction) {
-            dispatch(statusAction(status, args));
+        const initialAction = handleUpdate(...args)(status);
+        if (initialAction) {
+            dispatch(initialAction);
         }
         try {
             const result = await asyncFn(...args);
             status = { ...status, loading: false, lastUpdate: Date.now() };
-            if (statusAction) {
-                dispatch(batchActions([ successAction(result, args), statusAction(status, args) ]));
-            } else {
-                dispatch(successAction(result, args));
+            const successAction = handleUpdate(...args)(status, result);
+            if (successAction) {
+                dispatch(successAction);
             }
             return status;
         } catch (error) {
             status = { ...status, loading: false, error };
-            if (statusAction) {
-                dispatch(statusAction(status, args));
+            const errorAction = handleUpdate(...args)(status, undefined, error);
+            if (errorAction) {
+                dispatch(errorAction);
             }
             return status;
         }

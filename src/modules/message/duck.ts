@@ -4,6 +4,7 @@ import { MessageService } from './MessageService';
 import { createThunk, ThunkStatus, initialThunkStatus } from 'lib/createThunk';
 import { omit } from 'lib/objects';
 import { wrap, wrapReducer } from 'lib/keyedSubStates';
+import { batchActions } from 'redux-batched-actions';
 
 export interface MessageState {
     messages: Message[];
@@ -34,8 +35,7 @@ export const cancelMessage = configureAction<string>(
 
 export const loadAll = createThunk(
     MessageService.loadAll,
-    (messages, [ recipientId ]) => wrap(recipientId, update({ messages })),
-    (loadAllStatus, [ recipientId ]) => wrap(recipientId, update({ loadAllStatus })),
+    recipientId => (loadAllStatus, messages) => wrap(recipientId, update({ loadAllStatus, messages })),
 );
 
 export interface SendRequest {
@@ -56,8 +56,14 @@ const updateSendStatuses = configureAction<ThunkStatus<[SendRequest]>>(
     },
 );
 
+const isDefined = <T>(x: T | undefined): x is T => {
+    return true;
+}
+
 export const sendMessage = createThunk(
     ({ recipientId, text }: SendRequest) => MessageService.send(recipientId, text),
-    (message, [ { recipientId } ]) => wrap(recipientId, appendMessage(message)),
-    (status, [ { recipientId } ]) => wrap(recipientId, updateSendStatuses(status)),
+    ({ recipientId }) => (status, message) => wrap(recipientId, batchActions([
+        updateSendStatuses(status),
+        (message) ? appendMessage(message) : undefined,
+    ].filter(isDefined))),
 );
