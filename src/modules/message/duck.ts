@@ -5,6 +5,7 @@ import { createThunk, ThunkStatus, initialThunkStatus } from 'lib/createThunk';
 import { omit } from 'lib/objects';
 import { wrap, wrapReducer } from 'lib/keyedSubStates';
 import { batchActions } from 'redux-batched-actions';
+import { Action } from 'redux';
 
 export interface MessageState {
     messages: Message[];
@@ -23,6 +24,7 @@ export const messageReducer = reducer;
 
 export const messagesByChatIdReducer = wrapReducer(messageReducer);
 
+// FIXME: Make version of configureAction with built-in wrap call
 export const appendMessage = configureAction<Message>(
     'APPEND_MESSAGE',
     message => state => ({ ...state, messages: [ ...state.messages, message ] }),
@@ -33,18 +35,7 @@ export const cancelMessage = configureAction<string>(
     tempId => state => ({ ...state, sendStatuses: omit(state.sendStatuses, tempId) }),
 );
 
-export const loadAll = createThunk(
-    MessageService.loadAll,
-    recipientId => (loadAllStatus, messages) => wrap(recipientId, update({ loadAllStatus, messages })),
-);
-
-export interface SendRequest {
-    tempId: string;
-    recipientId: string;
-    text: string;
-}
-
-const updateSendStatuses = configureAction<ThunkStatus<[SendRequest]>>(
+export const updateSendStatuses = configureAction<ThunkStatus<[SendRequest]>>(
     'UPDATE_SEND_STATUSES',
     sendStatus => state => {
         const { sendStatuses } = state;
@@ -56,14 +47,25 @@ const updateSendStatuses = configureAction<ThunkStatus<[SendRequest]>>(
     },
 );
 
-const isDefined = <T>(x: T | undefined): x is T => {
-    return true;
+export const loadAll = createThunk(
+    MessageService.loadAll,
+    recipientId => (loadAllStatus, messages) => wrap(recipientId, update({ loadAllStatus, messages })),
+);
+// FIXME: `messages` is sometimes undefined, deletes the key in state
+
+export interface SendRequest {
+    tempId: string;
+    recipientId: string;
+    text: string;
 }
 
 export const sendMessage = createThunk(
     ({ recipientId, text }: SendRequest) => MessageService.send(recipientId, text),
-    ({ recipientId }) => (status, message) => wrap(recipientId, batchActions([
-        updateSendStatuses(status),
-        (message) ? appendMessage(message) : undefined,
-    ].filter(isDefined))),
+    ({ recipientId }) => (status, message) => {
+        const actions: Action[] = [ wrap(recipientId, updateSendStatuses(status)) ];
+        if (message) {
+            actions.push(wrap(recipientId, appendMessage(message)));
+        }
+        return batchActions(actions);
+    },
 );

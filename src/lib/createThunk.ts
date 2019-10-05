@@ -19,7 +19,7 @@ export const initialThunkStatus: ThunkStatus = {
 
 export const createThunk = <F extends AnyFunction>(
     asyncFn: F,
-    handleUpdate: (...args: Parameters<F>) => (status: ThunkStatus<Parameters<F>>, result?: ResolveType<ReturnType<F>>, error?: Error) => Action | undefined,
+    handleUpdate: (...args: Parameters<F>) => (status: ThunkStatus<Parameters<F>>, result?: ResolveType<ReturnType<F>>, error?: Error) => Action | void,
 ) => {
     return (...args: Parameters<F>) => async (dispatch: Dispatch) => {
         let status: ThunkStatus<Parameters<F>> = { ...initialThunkStatus, args, loading: true };
