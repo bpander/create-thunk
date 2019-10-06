@@ -49,9 +49,11 @@ export const updateSendStatuses = configureAction<ThunkStatus<[SendRequest]>>(
 
 export const loadAll = createThunk(
     MessageService.loadAll,
-    recipientId => (loadAllStatus, messages) => wrap(recipientId, update({ loadAllStatus, messages })),
+    recipientId => (loadAllStatus, messages) => wrap(recipientId, (messages)
+        ? update({ loadAllStatus, messages })
+        : update({ loadAllStatus })
+    ),
 );
-// FIXME: `messages` is sometimes undefined, deletes the key in state
 
 export interface SendRequest {
     tempId: string;
