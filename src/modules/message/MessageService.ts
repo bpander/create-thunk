@@ -1,5 +1,5 @@
 import { Message } from './types';
-import { mockMessages } from './__mocks__/message';
+import { getRandomMessages } from './__mocks__/message';
 import { uniqueId } from 'lib/uniqueId';
 
 export class MessageService {
@@ -10,7 +10,7 @@ export class MessageService {
         if (debug.shouldRequestsFail) {
             throw new Error('Simulated failure');
         }
-        return mockMessages;
+        return getRandomMessages(recipientId);
     }
 
     static async send(recipientId: string, text: string): Promise<Message> {

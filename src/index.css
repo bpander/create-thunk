@@ -40,3 +40,12 @@ html, body, #root { height: 100% }
 .btn {
   font-size: 1rem;
 }
+
+.btn-100 {
+  width: 100%;
+}
+
+.btn-active {
+  background: #555555;
+  color: #ffffff;
+}

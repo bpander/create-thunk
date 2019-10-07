@@ -4,7 +4,7 @@ import { ThunkDispatch } from 'redux-thunk';
 import { debugReducer } from 'modules/debug/duck';
 import { messagesByChatIdReducer } from 'modules/message/duck';
 import { enableBatching } from 'redux-batched-actions';
-import { chatReducer } from 'modules/chats/duck';
+import { chatReducer } from 'modules/chat/duck';
 
 export const rootReducer = enableBatching(combineReducers({
     chat: chatReducer,

@@ -7,7 +7,7 @@ import { RootDispatch, RootState } from 'root';
 import { uniqueId } from 'lib/uniqueId';
 
 interface MessageFormProps {
-    recipientId: string;
+    recipientId: string | null;
     sendMessage: (sendRequest: SendRequest) => void;
 }
 
@@ -16,7 +16,7 @@ export const MessageForm: React.FC<MessageFormProps> = props => {
 
     const onSubmit: React.FormEventHandler<HTMLFormElement> = e => {
         e.preventDefault();
-        if (!e.currentTarget.checkValidity()) {
+        if (!e.currentTarget.checkValidity() || !props.recipientId) {
             return;
         }
         props.sendMessage({ text: message, recipientId: props.recipientId, tempId: uniqueId() });
@@ -41,7 +41,7 @@ export const MessageForm: React.FC<MessageFormProps> = props => {
 };
 
 const mapStateToProps = (state: RootState) => ({
-    recipientId: 'lkj',
+    recipientId: state.chat.activeChat,
 });
 
 const mapDispatchToProps = (dispatch: RootDispatch) => bindActionCreators({

@@ -6,13 +6,15 @@ import { RootState } from 'root';
 import { loadAll } from '../duck';
 
 export const MessagePaneContainer: React.FC = () => {
-    const chatId = useSelector((state: RootState) => state.chat.activeChat);
+    const chatId = useSelector((state: RootState) => state.chat.activeChat || '');
     const messageState = useSelector((state: RootState) => state.recipient[chatId] || initialMessageState);
     const dispatch = useDispatch();
     // const loadAllIfNeeded = memoizeThunk(loadAll, bar({ status: messageState.loadAllStatus, maxAge: 1000 * 60 * 60 }));
 
     useEffect(() => {
-        dispatch(loadAll(chatId));
+        if (chatId) {
+            dispatch(loadAll(chatId));
+        }
     }, [ dispatch, chatId ]);
 
     if (messageState.loadAllStatus.loading) {
