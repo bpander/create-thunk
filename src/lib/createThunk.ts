@@ -1,4 +1,5 @@
 import { Action, Dispatch } from 'redux';
+import { shallowEqual } from 'react-redux';
 
 type AnyFunction = (...args: any[]) => Promise<any>;
 export type ResolveType<TPromise> = TPromise extends Promise<infer T> ? T : never;
@@ -43,5 +44,35 @@ export const createThunk = <F extends AnyFunction>(
             }
             return status;
         }
+    };
+};
+
+type Thunk = (...args: any[]) => (dispatch: Dispatch) => Promise<any>;
+const noopThunk: Thunk = () => async () => {};
+
+export const memoizeThunk = <T extends Thunk>(asyncFn: T, shouldCall: (...args: Parameters<T>) => boolean) => {
+    return (...args: Parameters<T>) => {
+        if (shouldCall(...args)) {
+            return asyncFn(...args);
+        }
+        return noopThunk;
+    }
+};
+
+export const shouldCall = <TArgs extends any[]>(options: { status: ThunkStatus<TArgs>; maxAge?: number }) => {
+    return (...args: TArgs): boolean => {
+        if (options.status.error) {
+            return true;
+        }
+        if (!shallowEqual(args, options.status.args)) {
+            return true;
+        }
+        if (options.status.loading) {
+            return false;
+        }
+        if (options.maxAge && options.status.lastUpdate && Date.now() - options.status.lastUpdate > options.maxAge) {
+            return true;
+        }
+        return false;
     };
 };

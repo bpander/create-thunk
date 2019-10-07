@@ -4,21 +4,31 @@ import { useSelector, useDispatch } from 'react-redux';
 import { sendMessage, cancelMessage, initialMessageState } from 'modules/message/duck';
 import { RootState } from 'root';
 import { loadAll } from '../duck';
+import { memoizeThunk, shouldCall } from 'lib/createThunk';
 
 export const MessagePaneContainer: React.FC = () => {
     const chatId = useSelector((state: RootState) => state.chat.activeChat || '');
     const messageState = useSelector((state: RootState) => state.recipient[chatId] || initialMessageState);
     const dispatch = useDispatch();
-    // const loadAllIfNeeded = memoizeThunk(loadAll, bar({ status: messageState.loadAllStatus, maxAge: 1000 * 60 * 60 }));
-
+    
+    const { loadAllStatus } = messageState;
     useEffect(() => {
-        if (chatId) {
-            dispatch(loadAll(chatId));
+        const loadAllIfNeeded = memoizeThunk(loadAll, shouldCall({ status: loadAllStatus, maxAge: 1000 * 5 }));
+        if (chatId && !loadAllStatus.error) {
+            dispatch(loadAllIfNeeded(chatId));
         }
-    }, [ dispatch, chatId ]);
+    }, [ dispatch, chatId, loadAllStatus ]);
 
     if (messageState.loadAllStatus.loading) {
         return <span>loading...</span>;
+    }
+    if (messageState.loadAllStatus.error) {
+        return (
+            <span>
+                An error occurred.{' '}
+                <button className="btn" onClick={() => dispatch(loadAll(chatId))}>Retry?</button>
+            </span>
+        );
     }
 
     return (
