@@ -19,18 +19,6 @@ export const MessagePaneContainer: React.FC = () => {
         }
     }, [ dispatch, chatId, loadAllStatus ]);
 
-    if (messageState.loadAllStatus.loading) {
-        return <span>loading...</span>;
-    }
-    if (messageState.loadAllStatus.error) {
-        return (
-            <span>
-                An error occurred.{' '}
-                <button className="btn" onClick={() => dispatch(loadAll(chatId))}>Retry?</button>
-            </span>
-        );
-    }
-
     return (
         <React.Fragment>
             <ul>
@@ -68,6 +56,15 @@ export const MessagePaneContainer: React.FC = () => {
                     );
                 })}
             </ul>
+            {(messageState.loadAllStatus.loading) && (
+                <span>loading...</span>
+            )}
+            {(messageState.loadAllStatus.error) && (
+                <span>
+                    An error occurred.{' '}
+                    <button className="btn" onClick={() => dispatch(loadAll(chatId))}>Retry?</button>
+                </span>
+            )}
         </React.Fragment>
     );
 }
