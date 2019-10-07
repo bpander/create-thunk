@@ -1,4 +1,4 @@
-import { configureActionsWith } from 'lib/configuredActions';
+import { createSlice } from 'lib/configuredActions';
 
 interface Chat {
     id: string;
@@ -15,5 +15,5 @@ const initialChatState: ChatState = {
     chats: [],
 }
 
-const { reducer } = configureActionsWith(initialChatState, 'CHAT');
+const { reducer } = createSlice(initialChatState, 'CHAT');
 export const chatReducer = reducer;

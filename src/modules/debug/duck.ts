@@ -1,4 +1,4 @@
-import { configureActionsWith } from 'lib/configuredActions';
+import { createSlice } from 'lib/configuredActions';
 
 export interface DebugState {
     latency: number;
@@ -10,7 +10,7 @@ const initialState: DebugState = {
     shouldRequestsFail: false,
 };
 
-const { reducer, update } = configureActionsWith(initialState, 'DEBUG');
+const { reducer, update } = createSlice(initialState, 'DEBUG');
 export const debugReducer = reducer;
 
 export { update };

@@ -4,7 +4,6 @@ import { useSelector, useDispatch } from 'react-redux';
 import { sendMessage, cancelMessage, initialMessageState } from 'modules/message/duck';
 import { RootState } from 'root';
 import { loadAll } from '../duck';
-import { wrap } from 'lib/keyedSubStates';
 
 export const MessagePaneContainer: React.FC = () => {
     const chatId = useSelector((state: RootState) => state.chat.activeChat);
@@ -47,7 +46,7 @@ export const MessagePaneContainer: React.FC = () => {
                                     <button
                                         type="button"
                                         className="btn"
-                                        onClick={() => dispatch(wrap(sendRequest.recipientId, cancelMessage(sendRequest.tempId)))}
+                                        onClick={() => dispatch(cancelMessage(sendRequest.recipientId, sendRequest.tempId))}
                                     >
                                         Cancel
                                     </button>

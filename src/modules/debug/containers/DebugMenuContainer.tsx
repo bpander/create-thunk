@@ -1,12 +1,12 @@
 import React from 'react';
 import { DebugState, update } from '../duck';
 import { connect } from 'react-redux';
-import { bindActionCreators, Dispatch } from 'redux';
+import { Dispatch } from 'redux';
 import { RootState } from 'root';
 
 interface DebugMenuProps {
     debug: DebugState;
-    update: (updates: Partial<DebugState>) => void;
+    update: <K extends keyof DebugState>(updates: Pick<DebugState, K>) => void;
 }
 const DebugMenu: React.FC<DebugMenuProps> = props => {
     return (
@@ -39,6 +39,6 @@ const DebugMenu: React.FC<DebugMenuProps> = props => {
 const mapStateToProps = (state: RootState) => ({
     debug: state.debug,
 });
-const mapDispatchToProps = (dispatch: Dispatch) => bindActionCreators({ update }, dispatch);
+const mapDispatchToProps = (dispatch: Dispatch) => ({ update: <K extends keyof DebugState>(updates: Pick<DebugState, K>) => dispatch(update(updates)) });
 
 export const DebugMenuContainer = connect(mapStateToProps, mapDispatchToProps)(DebugMenu);
