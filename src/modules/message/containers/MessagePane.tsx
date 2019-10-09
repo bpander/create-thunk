@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { sendMessage, cancelMessage, initialMessageState } from 'modules/message/duck';
 import { RootState } from 'root';
 import { loadAll } from '../duck';
-import { memoizeThunk, shouldCall } from 'lib/createThunk';
+import { memoizeThunk, isStale } from 'lib/createThunk';
 
 export const MessagePaneContainer: React.FC = () => {
     const chatId = useSelector((state: RootState) => state.chat.activeChat || '');
@@ -13,7 +13,7 @@ export const MessagePaneContainer: React.FC = () => {
     
     const { loadAllState } = messageState;
     useEffect(() => {
-        const loadAllIfNeeded = memoizeThunk(loadAll, shouldCall({ state: loadAllState, maxAge: 1000 * 5 }));
+        const loadAllIfNeeded = memoizeThunk(loadAll, isStale({ state: loadAllState, maxAge: 1000 * 5 }));
         if (chatId && !loadAllState.error) {
             dispatch(loadAllIfNeeded(chatId));
         }

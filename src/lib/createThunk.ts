@@ -82,7 +82,7 @@ export const memoizeThunk = <T extends Thunk>(asyncFn: T, shouldCall: (...args: 
     }
 };
 
-export const shouldCall = <TArgs extends any[]>(options: { state: AsyncActionState<TArgs>; maxAge?: number }) => {
+export const isStale = <TArgs extends any[]>(options: { state: AsyncActionState<TArgs>; maxAge?: number }) => {
     return (...args: TArgs): boolean => {
         if (options.state.error) {
             return true;
