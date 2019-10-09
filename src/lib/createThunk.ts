@@ -93,6 +93,9 @@ export const isStale = <TArgs extends any[]>(options: { state: AsyncActionState<
         if (options.state.loading) {
             return false;
         }
+        if (!options.state.lastUpdate) {
+            return true;
+        }
         if (options.maxAge && options.state.lastUpdate && Date.now() - options.state.lastUpdate > options.maxAge) {
             return true;
         }
