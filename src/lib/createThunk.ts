@@ -1,5 +1,6 @@
 import { Action, Dispatch } from 'redux';
 import { shallowEqual } from 'react-redux';
+import { ThunkAction } from 'redux-thunk';
 
 type AsyncFunction = (...args: any[]) => Promise<any>;
 export type ResolveType<TPromise> = TPromise extends Promise<infer T> ? T : never;
@@ -70,15 +71,15 @@ export const createThunk = asyncActionFactory(({ start, done, fail }, asyncFn, .
     };
 });
 
-type Thunk = (...args: any[]) => (dispatch: Dispatch) => Promise<any>;
-const noopThunk: Thunk = () => async () => {};
-
-export const memoizeThunk = <T extends Thunk>(asyncFn: T, shouldCall: (...args: Parameters<T>) => boolean) => {
-    return (...args: Parameters<T>) => {
+type ThunkActionCreator<R, S, E, A extends Action> = (...args: any[]) => ThunkAction<R, S, E, A>;
+export const callIfNeeded = <R, S, E, A extends Action, F extends ThunkActionCreator<R, S, E, A>>(
+    thunk: F,
+    shouldCall: (...args: Parameters<F>) => boolean,
+) => {
+    return (...args: Parameters<F>): ThunkAction<R | void, S, E, A> => dispatch => {
         if (shouldCall(...args)) {
-            return asyncFn(...args);
+            return dispatch(thunk(...args));
         }
-        return noopThunk;
     }
 };
 
