@@ -18,34 +18,53 @@ export const initialThunkStatus: ThunkStatus = {
     args: [],
 };
 
-export const createThunk = <F extends AnyFunction>(
-    asyncFn: F,
-    handleUpdate: (...args: Parameters<F>) => (status: ThunkStatus<Parameters<F>>, result?: ResolveType<ReturnType<F>>, error?: Error) => Action | void,
+const asyncActionFactory = <TReturnType>(
+    config: <F extends AnyFunction>(
+        actions: {
+            start: () => Action | void;
+            done: (result: ResolveType<ReturnType<F>>) => Action | void;
+            fail: (error: Error) => Action | void;
+        },
+        asyncFn: F,
+        ...args: Parameters<F>
+    ) => TReturnType,
 ) => {
-    return (...args: Parameters<F>) => async (dispatch: Dispatch) => {
-        let status: ThunkStatus<Parameters<F>> = { ...initialThunkStatus, args, loading: true };
-        const initialAction = handleUpdate(...args)(status);
-        if (initialAction) {
-            dispatch(initialAction);
-        }
-        try {
-            const result = await asyncFn(...args);
+    return <F extends AnyFunction>(
+        asyncFn: F,
+        handleUpdate: (...args: Parameters<F>) => (status: ThunkStatus<Parameters<F>>, result?: ResolveType<ReturnType<F>>, error?: Error) => Action | void,
+    ) => (...args: Parameters<F>) => {
+        let status: ThunkStatus<Parameters<F>> = { ...initialThunkStatus, args };
+        const onUpdate = handleUpdate(...args);
+        const start = () => {
+            status = { ...status, loading: true };
+            return onUpdate(status);
+        };
+        const done = (result: ResolveType<ReturnType<F>>) => {
             status = { ...status, loading: false, lastUpdate: Date.now() };
-            const successAction = handleUpdate(...args)(status, result);
-            if (successAction) {
-                dispatch(successAction);
-            }
-            return status;
-        } catch (error) {
+            return onUpdate(status, result);
+        };
+        const fail = (error: Error) => {
             status = { ...status, loading: false, error };
-            const errorAction = handleUpdate(...args)(status, undefined, error);
-            if (errorAction) {
-                dispatch(errorAction);
-            }
-            return status;
-        }
+            return onUpdate(status, undefined, error);
+        };
+        return config({ start, done, fail }, asyncFn, ...args);
     };
 };
+
+export const createThunk = asyncActionFactory(({ start, done, fail }, effect, ...args) => {
+    return async (dispatch: Dispatch) => {
+        const startAction = start();
+        startAction && dispatch(startAction);
+        try {
+            const result = await effect(...args);
+            const doneAction = done(result);
+            doneAction && dispatch(doneAction);
+        } catch (e) {
+            const failAction = fail(e);
+            failAction && dispatch(failAction);
+        }
+    };
+});
 
 type Thunk = (...args: any[]) => (dispatch: Dispatch) => Promise<any>;
 const noopThunk: Thunk = () => async () => {};
