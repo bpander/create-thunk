@@ -1,25 +1,25 @@
 import { Action, Dispatch } from 'redux';
 import { shallowEqual } from 'react-redux';
 
-type AnyFunction = (...args: any[]) => Promise<any>;
+type AsyncFunction = (...args: any[]) => Promise<any>;
 export type ResolveType<TPromise> = TPromise extends Promise<infer T> ? T : never;
 
-export interface ThunkStatus<TArgs = any[]> {
+export interface AsyncActionState<TArgs = any[]> {
     loading: boolean;
     error: Error | null;
     lastUpdate: number;
     args: TArgs;
 }
 
-export const initialThunkStatus: ThunkStatus = {
+export const initialAsyncActionState: AsyncActionState = {
     loading: false,
     error: null,
     lastUpdate: 0,
     args: [],
 };
 
-const asyncActionFactory = <TReturnType>(
-    config: <F extends AnyFunction>(
+export const asyncActionFactory = <TReturnType>(
+    config: <F extends AsyncFunction>(
         actions: {
             start: () => Action | void;
             done: (result: ResolveType<ReturnType<F>>) => Action | void;
@@ -29,34 +29,38 @@ const asyncActionFactory = <TReturnType>(
         ...args: Parameters<F>
     ) => TReturnType,
 ) => {
-    return <F extends AnyFunction>(
+    return <F extends AsyncFunction>(
         asyncFn: F,
-        handleUpdate: (...args: Parameters<F>) => (status: ThunkStatus<Parameters<F>>, result?: ResolveType<ReturnType<F>>, error?: Error) => Action | void,
+        handleUpdate: (...args: Parameters<F>) => (
+            state: AsyncActionState<Parameters<F>>,
+            result?: ResolveType<ReturnType<F>>,
+            error?: Error,
+        ) => Action | void,
     ) => (...args: Parameters<F>) => {
-        let status: ThunkStatus<Parameters<F>> = { ...initialThunkStatus, args };
+        let state: AsyncActionState<Parameters<F>> = { ...initialAsyncActionState, args };
         const onUpdate = handleUpdate(...args);
         const start = () => {
-            status = { ...status, loading: true };
-            return onUpdate(status);
+            state = { ...state, loading: true };
+            return onUpdate(state);
         };
         const done = (result: ResolveType<ReturnType<F>>) => {
-            status = { ...status, loading: false, lastUpdate: Date.now() };
-            return onUpdate(status, result);
+            state = { ...state, loading: false, lastUpdate: Date.now() };
+            return onUpdate(state, result);
         };
         const fail = (error: Error) => {
-            status = { ...status, loading: false, error };
-            return onUpdate(status, undefined, error);
+            state = { ...state, loading: false, error };
+            return onUpdate(state, undefined, error);
         };
         return config({ start, done, fail }, asyncFn, ...args);
     };
 };
 
-export const createThunk = asyncActionFactory(({ start, done, fail }, effect, ...args) => {
+export const createThunk = asyncActionFactory(({ start, done, fail }, asyncFn, ...args) => {
     return async (dispatch: Dispatch) => {
         const startAction = start();
         startAction && dispatch(startAction);
         try {
-            const result = await effect(...args);
+            const result = await asyncFn(...args);
             const doneAction = done(result);
             doneAction && dispatch(doneAction);
         } catch (e) {
@@ -78,18 +82,18 @@ export const memoizeThunk = <T extends Thunk>(asyncFn: T, shouldCall: (...args: 
     }
 };
 
-export const shouldCall = <TArgs extends any[]>(options: { status: ThunkStatus<TArgs>; maxAge?: number }) => {
+export const shouldCall = <TArgs extends any[]>(options: { state: AsyncActionState<TArgs>; maxAge?: number }) => {
     return (...args: TArgs): boolean => {
-        if (options.status.error) {
+        if (options.state.error) {
             return true;
         }
-        if (!shallowEqual(args, options.status.args)) {
+        if (!shallowEqual(args, options.state.args)) {
             return true;
         }
-        if (options.status.loading) {
+        if (options.state.loading) {
             return false;
         }
-        if (options.maxAge && options.status.lastUpdate && Date.now() - options.status.lastUpdate > options.maxAge) {
+        if (options.maxAge && options.state.lastUpdate && Date.now() - options.state.lastUpdate > options.maxAge) {
             return true;
         }
         return false;

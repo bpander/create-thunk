@@ -4,7 +4,7 @@ import { RootState } from 'root';
 import { loadChats, setActiveChat } from '../duck';
 
 export const ChatsContainer: React.FC = () => {
-    const { chats, loadChatsStatus, activeChat } = useSelector((state: RootState) => state.chat);
+    const { chats, loadChatsState, activeChat } = useSelector((state: RootState) => state.chat);
     const dispatch = useDispatch();
 
     useEffect(() => {
@@ -17,7 +17,7 @@ export const ChatsContainer: React.FC = () => {
         }
     }, [ dispatch, activeChat, chats ]);
 
-    if (loadChatsStatus.loading) {
+    if (loadChatsState.loading) {
         return <span>Loading...</span>;
     }
 

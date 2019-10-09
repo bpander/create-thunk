@@ -11,13 +11,13 @@ export const MessagePaneContainer: React.FC = () => {
     const messageState = useSelector((state: RootState) => state.recipient[chatId] || initialMessageState);
     const dispatch = useDispatch();
     
-    const { loadAllStatus } = messageState;
+    const { loadAllState } = messageState;
     useEffect(() => {
-        const loadAllIfNeeded = memoizeThunk(loadAll, shouldCall({ status: loadAllStatus, maxAge: 1000 * 5 }));
-        if (chatId && !loadAllStatus.error) {
+        const loadAllIfNeeded = memoizeThunk(loadAll, shouldCall({ state: loadAllState, maxAge: 1000 * 5 }));
+        if (chatId && !loadAllState.error) {
             dispatch(loadAllIfNeeded(chatId));
         }
-    }, [ dispatch, chatId, loadAllStatus ]);
+    }, [ dispatch, chatId, loadAllState ]);
 
     return (
         <React.Fragment>
@@ -27,8 +27,8 @@ export const MessagePaneContainer: React.FC = () => {
                 ))}
             </ul>
             <ul>
-                {Object.keys(messageState.sendStatuses).map(key => {
-                    const request = messageState.sendStatuses[key];
+                {Object.keys(messageState.sendStates).map(key => {
+                    const request = messageState.sendStates[key];
                     const [ sendRequest ] = request.args;
                     return (
                         <li key={sendRequest.tempId} style={{ opacity: (request.loading) ? 0.5 : 1 }}>
@@ -56,10 +56,10 @@ export const MessagePaneContainer: React.FC = () => {
                     );
                 })}
             </ul>
-            {(messageState.loadAllStatus.loading) && (
+            {(messageState.loadAllState.loading) && (
                 <span>loading...</span>
             )}
-            {(messageState.loadAllStatus.error) && (
+            {(messageState.loadAllState.error) && (
                 <span>
                     An error occurred.{' '}
                     <button className="btn" onClick={() => dispatch(loadAll(chatId))}>Retry?</button>

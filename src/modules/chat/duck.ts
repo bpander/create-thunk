@@ -1,18 +1,18 @@
 import { createSlice } from 'lib/configuredActions';
 import { Chat } from './models/Chat';
-import { createThunk, ThunkStatus, initialThunkStatus } from 'lib/createThunk';
+import { createThunk, AsyncActionState, initialAsyncActionState } from 'lib/createThunk';
 import { ChatService } from './ChatService';
 
 interface ChatState {
     activeChat: string | null;
     chats: Chat[];
-    loadChatsStatus: ThunkStatus;
+    loadChatsState: AsyncActionState;
 }
 
 const initialChatState: ChatState = {
     activeChat: null,
     chats: [],
-    loadChatsStatus: initialThunkStatus,
+    loadChatsState: initialAsyncActionState,
 };
 
 const { reducer, update, configureAction } = createSlice(initialChatState, 'CHAT');
@@ -25,7 +25,7 @@ export const setActiveChat = configureAction<string>(
 
 export const loadChats = createThunk(
     ChatService.loadAll,
-    () => (loadChatsStatus, chats) => (chats)
-        ? update({ loadChatsStatus, chats })
-        : update({ loadChatsStatus }),
+    () => (loadChatsState, chats) => (chats)
+        ? update({ loadChatsState, chats })
+        : update({ loadChatsState }),
 );
